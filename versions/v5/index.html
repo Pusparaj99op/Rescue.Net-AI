@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RescueNet AI - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RescueNet AI Dashboard</h1>
+        </header>
+        <main>
+            <div class="grid-container">
+                <div class="card">
+                    <h2>Vitals</h2>
+                    <canvas id="vitalsChart"></canvas>
+                </div>
+                <div class="card">
+                    <h2>Location</h2>
+                    <div id="map"></div>
+                </div>
+                <div class="card">
+                    <h2>Status</h2>
+                    <p><strong>Heart Rate:</strong> <span id="heart-rate">--</span> BPM</p>
+                    <p><strong>Temperature:</strong> <span id="temperature">--</span> &deg;C</p>
+                    <p><strong>Fall Detected:</strong> <span id="fall-detection">No</span></p>
+                    <p><strong>Battery:</strong> <span id="battery-level">--</span>%</p>
+                </div>
+                <div class="card">
+                    <h2>Emergency</h2>
+                    <button id="emergency-btn">Trigger Emergency</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RescueNet AI Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        .vital-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .vital-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .vital-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .status-normal { color: #4CAF50; }
+        .status-warning { color: #FF9800; }
+        .status-critical { color: #F44336; }
+
+        #map {
+            height: 300px;
+            border-radius: 10px;
+        }
+
+        .emergency-btn {
+            background: #F44336;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .emergency-btn:hover { background: #D32F2F; }
+
+        .user-info {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: white;
+        }
+
+        .login-form {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .form-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn:hover { background: #5a6fd8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚑 RescueNet AI Dashboard</h1>
+        <p>Real-time Health Monitoring & Emergency Response</p>
+    </div>
+
+<!-- Login Form -->
+    <div id="loginForm" class="login-form">
+        <div class="form-content">
+            <h2>User Registration/Login</h2>
+            <form id="userForm">
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="tel" id="userPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>Emergency Contact:</label>
+                    <input type="tel" id="emergencyContact" required>
+                </div>
+                <div class="form-group">
+                    <label>Age:</label>
+                    <input type="number" id="userAge" min="1" max="120" required>
+                </div>
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <select id="userGender" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Medical Conditions (if any):</label>
+                    <input type="text" id="medicalConditions" placeholder="e.g., Diabetes, Hypertension">
+                </div>
+                <div class="form-group" id="periodGroup" style="display: none;">
+                    <label>Last Period Date:</label>
+                    <input type="date" id="lastPeriod">
+                </div>
+                <button type="submit" class="btn">Save & Continue</button>
+                <button type="button" class="btn" onclick="closeLoginForm()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+<!-- User Info Card -->
+        <div class="card user-info">
+            <h3>👤 User Profile</h3>
+            <div id="userDetails">
+                <p><strong>Name:</strong> <span id="displayName">Not logged in</span></p>
+                <p><strong>Age:</strong> <span id="displayAge">-</span></p>
+                <p><strong>Gender:</strong> <span id="displayGender">-</span></p>
+                <p><strong>Emergency Contact:</strong> <span id="displayEmergency">-</span></p>
+            </div>
+            <button class="btn" onclick="showLoginForm()" id="loginBtn">Login/Register</button>
+        </div>
+
+<!-- Heart Rate Card -->
+        <div class="card vital-card">
+            <div>
+                <div class="vital-label">Heart Rate</div>
+                <div class="vital-value status-normal" id="heartRate">-- BPM</div>
+            </div>
+            <div style="font-size: 3em;">💓</div>
+        </div>
+
+<!-- Temperature Card -->
+        <div class="card vital-card">
+            <div>
+                <div class="vital-label">Body Temperature</div>
+                <div class="vital-value status-normal" id="temperature">-- °C</div>
+            </div>
+            <div style="font-size: 3em;">🌡️</div>
+        </div>
+
+<!-- Blood Pressure Card -->
+        <div class="card vital-card">
+            <div>
+                <div class="vital-label">Blood Pressure</div>
+                <div class="vital-value status-normal" id="bloodPressure">-- mmHg</div>
+            </div>
+            <div style="font-size: 3em;">🩺</div>
+        </div>
+
+<!-- Location Card -->
+        <div class="card">
+            <h3>📍 Current Location</h3>
+            <div id="map"></div>
+            <p id="coordinates">Waiting for GPS...</p>
+        </div>
+
+<!-- Emergency Status Card -->
+        <div class="card">
+            <h3>🚨 Emergency Status</h3>
+            <div id="emergencyStatus">
+                <p><strong>Status:</strong> <span id="statusText" class="status-normal">Normal</span></p>
+                <p><strong>Last Update:</strong> <span id="lastUpdate">--</span></p>
+                <button class="emergency-btn" onclick="triggerEmergency()">
+                    EMERGENCY ALERT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Global variables
+        let map;
+        let userMarker;
+        let userData = {};
+        let wsConnection;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            checkUserLogin();
+            connectWebSocket();
+            startDataUpdates();
+        });
+
+        // Initialize map
+        function initializeMap() {
+            map = L.map('map').setView([21.1458, 79.0882], 13); // Nagpur coordinates
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        // Check if user is logged in
+        function checkUserLogin() {
+            const savedUser = localStorage.getItem('rescuenet_user');
+            if (savedUser) {
+                userData = JSON.parse(savedUser);
+                displayUserInfo();
+                document.getElementById('loginBtn').textContent = 'Update Profile';
+            } else {
+                showLoginForm();
+            }
+        }
+
+        // Show login form
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+
+            // Show period field for female users
+            document.getElementById('userGender').addEventListener('change', function() {
+                const periodGroup = document.getElementById('periodGroup');
+                if (this.value === 'Female') {
+                    periodGroup.style.display = 'block';
+                } else {
+                    periodGroup.style.display = 'none';
+                }
+            });
+
+            // Fill form with existing data if available
+            if (userData.name) {
+                document.getElementById('userName').value = userData.name;
+                document.getElementById('userPhone').value = userData.phone;
+                document.getElementById('emergencyContact').value = userData.emergencyContact;
+                document.getElementById('userAge').value = userData.age;
+                document.getElementById('userGender').value = userData.gender;
+                document.getElementById('medicalConditions').value = userData.medicalConditions || '';
+                document.getElementById('lastPeriod').value = userData.lastPeriod || '';
+            }
+        }
+
+        // Close login form
+        function closeLoginForm() {
+            document.getElementById('loginForm').style.display = 'none';
+        }
+
+        // Handle form submission
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+             userData = {
+               name: document.getElementById('userName').value,
+               phone: document.getElementById('userPhone').value,
+               emergencyContact: document.getElementById('emergencyContact').value,
+               age: parseInt(document.getElementById('userAge').value),
+               gender: document.getElementById('userGender').value,
+               medicalConditions: document.getElementById('medicalConditions').value,
+               lastPeriod: document.getElementById('lastPeriod').value,
+               registrationDate: new Date().toISOString()
+           };
+
+// Save to localStorage and MongoDB
+           localStorage.setItem('rescuenet_user', JSON.stringify(userData));
+           saveUserToDatabase();
+           displayUserInfo();
+           closeLoginForm();
+
+           alert('Profile saved successfully!');
+       });
+
+// Display user information
+       function displayUserInfo() {
+           document.getElementById('displayName').textContent = userData.name || 'Not set';
+           document.getElementById('displayAge').textContent = userData.age || 'Not set';
+           document.getElementById('displayGender').textContent = userData.gender || 'Not set';
+           document.getElementById('displayEmergency').textContent = userData.emergencyContact || 'Not set';
+       }
+
+// Save user to database
+       function saveUserToDatabase() {
+           fetch('/api/users', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json',
+               },
+               body: JSON.stringify(userData)
+           })
+           .then(response => response.json())
+           .then(data => {
+               console.log('User saved to database:', data);
+           })
+           .catch(error => {
+               console.error('Error saving user:', error);
+           });
+       }
+
+// Connect WebSocket for real-time data
+       function connectWebSocket() {
+           wsConnection = new WebSocket('ws://localhost:3000');
+
+           wsConnection.onmessage = function(event) {
+               const data = JSON.parse(event.data);
+               updateHealthData(data);
+           };
+
+           wsConnection.onopen = function() {
+               console.log('WebSocket connected');
+           };
+
+           wsConnection.onerror = function(error) {
+               console.error('WebSocket error:', error);
+           };
+       }
+
+// Update health data on dashboard
+       function updateHealthData(data) {
+// Update heart rate
+           const heartRateElement = document.getElementById('heartRate');
+           heartRateElement.textContent = data.heartRate ? data.heartRate.toFixed(0) + ' BPM' : '-- BPM';
+           heartRateElement.className = 'vital-value ' + getHealthStatus(data.heartRate, 60, 100);
+
+// Update temperature
+           const tempElement = document.getElementById('temperature');
+           tempElement.textContent = data.temperature ? data.temperature.toFixed(1) + ' °C' : '-- °C';
+           tempElement.className = 'vital-value ' + getHealthStatus(data.temperature, 36.0, 37.5);
+
+// Update blood pressure
+           const bpElement = document.getElementById('bloodPressure');
+           bpElement.textContent = data.bloodPressure ? data.bloodPressure.toFixed(0) + ' mmHg' : '-- mmHg';
+           bpElement.className = 'vital-value ' + getHealthStatus(data.bloodPressure, 90, 120);
+
+// Update location
+           if (data.latitude && data.longitude) {
+               updateLocation(data.latitude, data.longitude);
+               document.getElementById('coordinates').textContent =
+                   `Lat: ${data.latitude.toFixed(6)}, Lng: ${data.longitude.toFixed(6)}`;
+           }
+
+// Update emergency status
+           if (data.emergencyStatus) {
+               document.getElementById('statusText').textContent = 'EMERGENCY ACTIVE';
+               document.getElementById('statusText').className = 'status-critical';
+               handleEmergencyAlert(data);
+           } else {
+               document.getElementById('statusText').textContent = 'Normal';
+               document.getElementById('statusText').className = 'status-normal';
+           }
+
+// Update last update time
+           document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+       }
+
+// Get health status class
+       function getHealthStatus(value, min, max) {
+           if (!value) return 'status-normal';
+           if (value < min - 10 || value > max + 10) return 'status-critical';
+           if (value < min || value > max) return 'status-warning';
+           return 'status-normal';
+       }
+
+// Update location on map
+       function updateLocation(lat, lng) {
+           if (userMarker) {
+               map.removeLayer(userMarker);
+           }
+
+           userMarker = L.marker([lat, lng]).addTo(map)
+               .bindPopup(`<b>${userData.name || 'User'}</b><br>Current Location`)
+               .openPopup();
+
+           map.setView([lat, lng], 15);
+       }
+
+// Handle emergency alert
+       function handleEmergencyAlert(data) {
+// Show browser notification
+           if (Notification.permission === 'granted') {
+               new Notification('🚨 EMERGENCY ALERT', {
+                   body: `${userData.name} needs immediate assistance!`,
+                   icon: '/emergency-icon.png'
+               });
+           }
+
+// Send to Telegram
+           sendTelegramAlert(data);
+
+// Flash the page
+           document.body.style.background = '#ffebee';
+           setTimeout(() => {
+               document.body.style.background = '#f0f2f5';
+           }, 1000);
+       }
+
+// Manual emergency trigger
+       function triggerEmergency() {
+           if (confirm('Are you sure you want to trigger an emergency alert?')) {
+               const emergencyData = {
+                   userId: userData.phone,
+                   emergencyStatus: true,
+                   manualTrigger: true,
+                   timestamp: new Date().toISOString(),
+                   reason: 'Manual Emergency Activation'
+               };
+
+// Send to server
+               fetch('/api/emergency', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify(emergencyData)
+               });
+
+// Update UI
+               handleEmergencyAlert(emergencyData);
+           }
+       }
+
+// Send Telegram alert
+       function sendTelegramAlert(data) {
+           const message = `🚨 EMERGENCY ALERT 🚨\n\n` +
+               `Patient: ${userData.name}\n` +
+               `Age: ${userData.age}, ${userData.gender}\n` +
+               `Phone: ${userData.phone}\n` +
+               `Emergency Contact: ${userData.emergencyContact}\n` +
+               `Heart Rate: ${data.heartRate} BPM\n` +
+               `Temperature: ${data.temperature}°C\n` +
+               `Location: ${data.latitude}, ${data.longitude}\n` +
+               `Time: ${new Date().toLocaleString()}\n` +
+               `Medical Conditions: ${userData.medicalConditions}\n\n` +
+               `Google Maps: https://maps.google.com/?q=${data.latitude},${data.longitude}`;
+
+           fetch('/api/telegram-alert', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({ message })
+           });
+       }
+
+// Start periodic data updates
+       function startDataUpdates() {
+           setInterval(() => {
+               fetch('/api/health-data/latest')
+                   .then(response => response.json())
+                   .then(data => {
+                       if (data) {
+                           updateHealthData(data);
+                       }
+                   })
+                   .catch(error => {
+                       console.error('Error fetching health data:', error);
+                   });
+           }, 5000);// Update every 5 seconds
+       }
+
+// Request notification permission
+       if ('Notification' in window) {
+           Notification.requestPermission();
+       }
+   </script>
+</body>
+</html>

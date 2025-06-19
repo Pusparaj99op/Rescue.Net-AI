@@ -1,0 +1,149 @@
+# Add node_modules directory
+node_modules/
+
+# Add build directories
+dist/
+build/
+
+# Add log files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Add runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Add coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Add nyc test coverage
+.nyc_output/
+
+# Add Dependency directories
+node_modules/
+jspm_packages/
+
+# Add Optional npm cache directory
+.npm
+
+# Add Optional eslint cache
+.eslintcache
+
+# Add Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Add Optional REPL history
+.node_repl_history
+
+# Add Output of 'npm pack'
+*.tgz
+
+# Add Yarn Integrity file
+.yarn-integrity
+
+# Add dotenv environment variables file
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Add parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Add Next.js build output
+.next
+
+# Add Nuxt.js build / generate output
+.nuxt
+dist
+
+# Add Gatsby files
+.cache/
+public
+
+# Add vuepress build output
+.vuepress/dist
+
+# Add Serverless directories
+.serverless/
+
+# Add FuseBox cache
+.fusebox/
+
+# Add DynamoDB Local files
+.dynamodb/
+
+# Add TernJS port file
+.tern-port
+
+# Add Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Add yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Add OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Add IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Add Temporary files
+*.tmp
+*.temp
+
+# Add Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Add Application specific
+uploads/
+temp/
+backup/
+*.backup
+
+# Add SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# Add Configuration files with sensitive data
+config/production.json
+config/secrets.json
+
+# Add Arduino/ESP32 specific
+*.hex
+*.elf
+*.map
+
+# Add Python cache (if any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
